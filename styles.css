@@ -70,6 +70,11 @@ h1 span { color: var(--green); }
 .progress-track { height: 5px; border-radius: 5px; background: #edf1ed; overflow: hidden; }
 .progress-bar { width: 0; height: 100%; background: #5e9875; transition: width .18s; }
 .inline-error { margin: 12px 0 0; color: #a94737; font-size: 11px; }
+.attendance-message { margin: 9px 0 0; }
+.data-actions { display: flex; justify-content: flex-end; margin-top: 7px; }
+.history-actions { display: flex; gap: 7px; align-items: center; }
+.history-actions .text-button { padding: 4px 2px; }
+.text-button:focus-visible, button:focus-visible, .text-input:focus-visible { outline: 2px solid #5e9875; outline-offset: 2px; }
 .results-panel { padding-bottom: 17px; }
 .results-heading { align-items: center; }
 .derived-badge { display: inline-flex; align-items: center; gap: 7px; }

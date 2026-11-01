@@ -16,6 +16,7 @@
     progressLabel: document.querySelector("#progressLabel"),
     progressPercent: document.querySelector("#progressPercent"),
     progressBar: document.querySelector("#progressBar"),
+    progressTrack: document.querySelector("#progressTrack"),
     error: document.querySelector("#errorMessage"),
     movement: document.querySelector("#movementValue"),
     audioMetric: document.querySelector("#audioValue"),
@@ -27,11 +28,14 @@
     suggestions: document.querySelector("#suggestionList"),
     participant: document.querySelector("#participantCode"),
     attendanceForm: document.querySelector("#attendanceForm"),
+    attendanceMessage: document.querySelector("#attendanceMessage"),
     resetAttendance: document.querySelector("#resetAttendance"),
+    exportRoster: document.querySelector("#exportRoster"),
     roster: document.querySelector("#rosterList"),
     attendanceCount: document.querySelector("#attendanceCount"),
     history: document.querySelector("#historyList"),
     clearHistory: document.querySelector("#clearHistory"),
+    exportHistory: document.querySelector("#exportHistory"),
     today: document.querySelector("#todayLabel"),
     privacyDialog: document.querySelector("#privacyDialog")
   };
@@ -72,11 +76,38 @@
     els.error.hidden = true;
   }
 
+  function showAttendanceMessage(message) {
+    els.attendanceMessage.textContent = message;
+    els.attendanceMessage.hidden = false;
+  }
+
+  function clearAttendanceMessage() {
+    els.attendanceMessage.textContent = "";
+    els.attendanceMessage.hidden = true;
+  }
+
+  function downloadCsv(filename, headers, rows) {
+    const escapeCell = (value) => {
+      const cell = String(value ?? "").replace(/^[\t\r ]*[=+\-@]/, "'$&");
+      return `"${cell.replaceAll('"', '""')}"`;
+    };
+    const contents = [headers, ...rows].map((row) => row.map(escapeCell).join(",")).join("\r\n");
+    const blob = new Blob(["\uFEFF", contents], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function setProgress(label, percent) {
+    const value = Math.min(100, Math.max(0, Math.round(percent)));
     els.progress.hidden = false;
     els.progressLabel.textContent = label;
-    els.progressPercent.textContent = `${Math.round(percent)}%`;
-    els.progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    els.progressPercent.textContent = `${value}%`;
+    els.progressBar.style.width = `${value}%`;
+    els.progressTrack.setAttribute("aria-valuenow", String(value));
   }
 
   function selectedFiles() {
@@ -359,14 +390,6 @@
         saveState();
         renderRoster();
       });
-      els.resetAttendance.addEventListener("click", () => {
-        state.participants.forEach((participant) => {
-          participant.present = false;
-          participant.checkedIn = null;
-        });
-        saveState();
-        renderRoster();
-      });
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "remove-participant";
@@ -402,7 +425,8 @@
       name.textContent = session.title;
       const meta = document.createElement("div");
       meta.className = "history-meta";
-      meta.textContent = `${new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(session.savedAt))} · ${session.presentCount} checked in`;
+      const duration = session.duration ? ` · ${formatTime(session.duration)}` : "";
+      meta.textContent = `${new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(session.savedAt))}${duration} · ${session.presentCount} checked in`;
       item.append(name, meta);
       els.history.append(item);
     });
@@ -437,6 +461,7 @@
         duration,
         movement: els.movement.textContent,
         audio: els.audioMetric.textContent,
+        shiftCount: els.shifts.textContent,
         presentCount: state.participants.filter((participant) => participant.present).length
       };
       state.sessions.unshift(session);
@@ -463,19 +488,56 @@
     const code = els.participant.value.trim();
     if (!code) return;
     if (state.participants.some((participant) => participant.code.toLocaleLowerCase() === code.toLocaleLowerCase())) {
-      showError("That participant code is already on the roll call.");
+      showAttendanceMessage("That participant code is already on the roll call.");
       els.participant.focus();
       return;
     }
     if (state.participants.length >= 100) {
-      showError("The local roll call is limited to 100 participant codes.");
+      showAttendanceMessage("The local roll call is limited to 100 participant codes.");
       return;
     }
     state.participants.push({ code, present: true, checkedIn: new Date().toISOString() });
     els.participant.value = "";
-    clearError();
+    clearAttendanceMessage();
     saveState();
     renderRoster();
+  });
+  els.resetAttendance.addEventListener("click", () => {
+    state.participants.forEach((participant) => {
+      participant.present = false;
+      participant.checkedIn = null;
+    });
+    saveState();
+    renderRoster();
+    clearAttendanceMessage();
+  });
+  els.exportRoster.addEventListener("click", () => {
+    if (!state.participants.length) {
+      showAttendanceMessage("Add participant codes before exporting the roll call.");
+      return;
+    }
+    downloadCsv("classroom-signal-roll-call.csv", ["Participant code", "Present", "Checked in"], state.participants.map((participant) => [
+      participant.code,
+      participant.present ? "Yes" : "No",
+      participant.checkedIn ? new Date(participant.checkedIn).toLocaleString() : ""
+    ]));
+    clearAttendanceMessage();
+  });
+  els.exportHistory.addEventListener("click", () => {
+    if (!state.sessions.length) {
+      showError("Analyze a session before exporting session history.");
+      return;
+    }
+    downloadCsv("classroom-signal-session-history.csv", ["Session", "Saved at", "Duration", "Average movement", "Average audio activity", "Activity shifts", "Present participants"], state.sessions.map((session) => [
+      session.title,
+      new Date(session.savedAt).toLocaleString(),
+      session.duration ? formatTime(session.duration) : "",
+      session.movement,
+      session.audio,
+      session.shiftCount,
+      session.presentCount
+    ]));
+    clearError();
   });
   els.clearHistory.addEventListener("click", () => {
     state.sessions = [];

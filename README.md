@@ -15,6 +15,7 @@ For browser compatibility, use a recent version of Chrome, Edge, or Firefox. Vid
 - View a session activity chart and receive simple, rules-based teaching reflection prompts.
 - Keep a local roll call using educator-entered participant codes and check-in timestamps.
 - Reset attendance check-ins before a new session while retaining the participant-code list.
+- Export the roll call and recent session summaries as CSV files.
 - Retain up to 10 session summaries and 100 participant codes in browser local storage.
 
 ## Important limitations

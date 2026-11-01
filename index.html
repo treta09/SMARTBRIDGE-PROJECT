@@ -40,7 +40,7 @@
               </div>
               <span class="step-badge">BROWSER PROCESSING</span>
             </div>
-            <p class="muted">Choose local video and/or audio. Files are analyzed in memory and never uploaded.</p>
+            <p class="muted">Choose local video and/or audio. Files are analyzed in memory and never uploaded. Analysis covers up to the first 10 minutes.</p>
             <div class="upload-grid">
               <label class="upload-card" for="videoFile">
                 <span class="upload-icon video-icon" aria-hidden="true">▶</span>
@@ -64,7 +64,7 @@
             </div>
             <div class="progress-wrap" id="progressWrap" hidden>
               <div class="progress-copy"><span id="progressLabel">Preparing analysis…</span><span id="progressPercent">0%</span></div>
-              <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+              <div class="progress-track" role="progressbar" aria-label="Session analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressTrack"><div class="progress-bar" id="progressBar"></div></div>
             </div>
             <p class="inline-error" id="errorMessage" role="alert" hidden></p>
           </section>
@@ -120,7 +120,7 @@
                 <div class="section-kicker">03 / ROLL CALL</div>
                 <h2 id="attendanceHeading">Attendance log</h2>
               </div>
-              <span class="count-badge" id="attendanceCount">0</span>
+              <span class="count-badge" id="attendanceCount" aria-label="Participants checked in">0</span>
             </div>
             <p class="muted small-copy">Add pseudonyms and confirm attendance yourself. No face recognition or identity inference.</p>
             <button id="resetAttendance" class="text-button reset-attendance" type="button">Reset check-ins for next session</button>
@@ -129,6 +129,10 @@
               <input id="participantCode" class="text-input" type="text" maxlength="32" placeholder="Participant code" autocomplete="off">
               <button class="add-button" type="submit" aria-label="Add participant">+</button>
             </form>
+            <p class="inline-error attendance-message" id="attendanceMessage" role="alert" hidden></p>
+            <div class="data-actions">
+              <button id="exportRoster" class="text-button" type="button">Export roll call</button>
+            </div>
             <div class="roster-list" id="rosterList">
               <div class="empty-roster"><span class="empty-mark">○</span><span>Add a participant code to start a local roll call.</span></div>
             </div>
@@ -141,7 +145,10 @@
                 <div class="section-kicker">YOUR DEVICE</div>
                 <h2 id="historyHeading">Recent sessions</h2>
               </div>
-              <button id="clearHistory" class="text-button" type="button">Clear</button>
+              <div class="history-actions">
+                <button id="exportHistory" class="text-button" type="button">Export</button>
+                <button id="clearHistory" class="text-button" type="button">Clear</button>
+              </div>
             </div>
             <div id="historyList" class="history-list"><p class="history-empty">Completed sessions will be saved on this device only.</p></div>
           </section>
