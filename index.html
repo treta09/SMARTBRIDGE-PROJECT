@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta name="description" content="A privacy-first, offline classroom session analytics starter app.">
+    <title>Classroom Signal — Offline Session Studio</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Classroom Signal home">
+        <span class="brand-mark" aria-hidden="true">cs</span>
+        <span>classroom<span class="brand-light">signal</span></span>
+      </a>
+      <div class="topbar-right">
+        <span class="privacy-pill"><span class="status-dot"></span> Local only</span>
+        <button class="icon-button" id="privacyButton" aria-label="Privacy information" title="Privacy information">i</button>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="intro">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> OFFLINE SESSION STUDIO</div>
+          <h1>Read the room.<br><span>Support the learning.</span></h1>
+          <p class="intro-copy">A private, educator-led view of session activity. Your media stays on this device.</p>
+        </div>
+        <div class="session-date"><span class="live-dot"></span><span id="todayLabel">NEW SESSION</span></div>
+      </section>
+
+      <div class="layout">
+        <div class="main-column">
+          <section class="panel setup-panel" aria-labelledby="setupHeading">
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">01 / SESSION INPUT</div>
+                <h2 id="setupHeading">Bring in a recording</h2>
+              </div>
+              <span class="step-badge">BROWSER PROCESSING</span>
+            </div>
+            <p class="muted">Choose local video and/or audio. Files are analyzed in memory and never uploaded.</p>
+            <div class="upload-grid">
+              <label class="upload-card" for="videoFile">
+                <span class="upload-icon video-icon" aria-hidden="true">▶</span>
+                <span class="upload-title">Video recording</span>
+                <span class="upload-meta">MP4, WebM, MOV · up to 500 MB</span>
+                <span class="file-name" id="videoName">Choose a file</span>
+                <input id="videoFile" type="file" accept="video/*">
+              </label>
+              <label class="upload-card" for="audioFile">
+                <span class="upload-icon audio-icon" aria-hidden="true">≋</span>
+                <span class="upload-title">Audio recording</span>
+                <span class="upload-meta">WAV, MP3, M4A, WebM · up to 100 MB</span>
+                <span class="file-name" id="audioName">Choose a file</span>
+                <input id="audioFile" type="file" accept="audio/*">
+              </label>
+            </div>
+            <div class="session-controls">
+              <label class="field-label" for="sessionTitle">Session name</label>
+              <input id="sessionTitle" class="text-input" type="text" maxlength="80" placeholder="e.g. Biology · Cell structure">
+              <button id="analyzeButton" class="primary-button" disabled><span aria-hidden="true">↗</span> Analyze session</button>
+            </div>
+            <div class="progress-wrap" id="progressWrap" hidden>
+              <div class="progress-copy"><span id="progressLabel">Preparing analysis…</span><span id="progressPercent">0%</span></div>
+              <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+            </div>
+            <p class="inline-error" id="errorMessage" role="alert" hidden></p>
+          </section>
+
+          <section class="panel results-panel" id="resultsPanel" aria-labelledby="resultsHeading">
+            <div class="panel-heading results-heading">
+              <div>
+                <div class="section-kicker">02 / SESSION PULSE <span id="sessionDuration"></span></div>
+                <h2 id="resultsHeading">Your session, at a glance</h2>
+              </div>
+              <span class="derived-badge"><span class="status-dot"></span> ON-DEVICE ANALYSIS</span>
+            </div>
+            <div class="metric-grid">
+              <article class="metric-card">
+                <span class="metric-label">Visual movement</span>
+                <div class="metric-value"><span id="movementValue">—</span><span class="metric-unit">/ 100</span></div>
+                <div class="metric-caption">Change between sampled frames</div>
+              </article>
+              <article class="metric-card">
+                <span class="metric-label">Audio activity</span>
+                <div class="metric-value"><span id="audioValue">—</span><span class="metric-unit">/ 100</span></div>
+                <div class="metric-caption">Sampled sound energy · relative scale</div>
+              </article>
+              <article class="metric-card accent-card">
+                <span class="metric-label">Activity shifts</span>
+                <div class="metric-value"><span id="shiftValue">—</span><span class="metric-unit">moments</span></div>
+                <div class="metric-caption">Notable changes across the session</div>
+              </article>
+            </div>
+            <div class="chart-section">
+              <div class="chart-title-row">
+                <div><h3>Session activity</h3><span class="chart-subtitle">A 30-second view of observable signals</span></div>
+                <div class="legend"><span><i class="legend-dot movement-dot"></i>Movement</span><span><i class="legend-dot audio-dot"></i>Audio</span></div>
+              </div>
+              <div class="chart-wrap"><canvas id="activityChart" aria-label="Session activity chart" role="img"></canvas><div class="chart-empty" id="chartEmpty">Analyze a recording to see session activity.</div></div>
+              <div class="chart-x-labels" id="chartLabels"></div>
+            </div>
+            <div class="suggestions">
+              <div class="suggestion-icon" aria-hidden="true">✳</div>
+              <div class="suggestion-content">
+                <div class="section-kicker">LOCAL TEACHING CUES <span class="assistive-tag">ASSISTIVE, NOT PRESCRIPTIVE</span></div>
+                <div id="suggestionList" class="suggestion-list"><p>Session cues will appear here after analysis. Treat them as prompts for reflection, not measurements of learning.</p></div>
+              </div>
+            </div>
+            <p class="caveat">Movement and audio activity are rough context signals—not measures of attention, understanding, emotion, or individual performance.</p>
+          </section>
+        </div>
+
+        <aside class="side-column">
+          <section class="panel attendance-panel" aria-labelledby="attendanceHeading">
+            <div class="panel-heading compact-heading">
+              <div>
+                <div class="section-kicker">03 / ROLL CALL</div>
+                <h2 id="attendanceHeading">Attendance log</h2>
+              </div>
+              <span class="count-badge" id="attendanceCount">0</span>
+            </div>
+            <p class="muted small-copy">Add pseudonyms and confirm attendance yourself. No face recognition or identity inference.</p>
+            <button id="resetAttendance" class="text-button reset-attendance" type="button">Reset check-ins for next session</button>
+            <form id="attendanceForm" class="attendance-form">
+              <label class="sr-only" for="participantCode">Participant code</label>
+              <input id="participantCode" class="text-input" type="text" maxlength="32" placeholder="Participant code" autocomplete="off">
+              <button class="add-button" type="submit" aria-label="Add participant">+</button>
+            </form>
+            <div class="roster-list" id="rosterList">
+              <div class="empty-roster"><span class="empty-mark">○</span><span>Add a participant code to start a local roll call.</span></div>
+            </div>
+            <div class="attendance-foot"><span>CHECK-IN TIME</span><span>ON THIS DEVICE</span></div>
+          </section>
+
+          <section class="panel history-panel" aria-labelledby="historyHeading">
+            <div class="panel-heading compact-heading">
+              <div>
+                <div class="section-kicker">YOUR DEVICE</div>
+                <h2 id="historyHeading">Recent sessions</h2>
+              </div>
+              <button id="clearHistory" class="text-button" type="button">Clear</button>
+            </div>
+            <div id="historyList" class="history-list"><p class="history-empty">Completed sessions will be saved on this device only.</p></div>
+          </section>
+
+          <div class="privacy-note"><span class="lock-icon" aria-hidden="true">⌑</span><div><strong>Private by design</strong><p>Media is discarded after analysis. Only summary metrics and attendance codes are saved in this browser.</p></div></div>
+        </aside>
+      </div>
+      <footer><span>CLASSROOM SIGNAL <span class="footer-version">STARTER · 0.1</span></span><span>BUILT FOR REFLECTION, NOT SURVEILLANCE</span></footer>
+    </main>
+    <dialog id="privacyDialog">
+      <div class="dialog-inner">
+        <button class="dialog-close" id="closePrivacy" aria-label="Close">×</button>
+        <div class="section-kicker">PRIVACY &amp; LIMITATIONS</div>
+        <h2>Designed to stay on your device.</h2>
+        <p>Video and audio are sampled locally by your browser. The original media is not uploaded or saved. Session summaries, participant codes, and check-in times are kept in this browser's local storage.</p>
+        <p>This starter does not identify faces, detect speech content, or infer a learner's attention or emotional state. Visual movement and audio energy are limited proxies. Teaching cues are simple rules-based prompts, not an AI model or professional advice.</p>
+        <button class="primary-button" id="closePrivacyButton" type="button">Got it</button>
+      </div>
+    </dialog>
+    <script src="app.js"></script>
+  </body>
+</html>
